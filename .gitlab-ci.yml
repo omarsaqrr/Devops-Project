@@ -38,11 +38,11 @@ test:
     - sleep 15
     # health check backend
     - apk add --no-cache curl
-    - curl -f http://backend:5000/ || (echo "Backend failed!" && exit 1)
+    - curl -f http://localhost:5000/ || (echo "Backend failed!" && exit 1)
     - docker-compose -f docker-compose.yml up -d frontend
     - sleep 15
     # health check frontend
-    - curl -f http://frontend:80 || (echo "Frontend failed!" && exit 1)
+    - curl -f http://localhost:80 || (echo "Frontend failed!" && exit 1)
   after_script:
     - docker-compose -f docker-compose.yml down
 
