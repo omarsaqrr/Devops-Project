@@ -1,0 +1,66 @@
+version: "3.9"
+
+services:
+  # ----------------------
+  # PostgreSQL Database
+  # ----------------------
+  db:
+    image: postgres:15
+    container_name: postgres-db
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: microservices_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+  # ----------------------
+  # Flask Backend
+  # ----------------------
+  backend:
+    build:
+      context: ./backend   # path to your Flask backend folder
+      dockerfile: Dockerfile
+    container_name: flask-backend
+    restart: always
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/microservices_db
+      FLASK_ENV: production
+    ports:
+      - "5000:5000"
+    networks:
+      - app-network
+
+  # ----------------------
+  # React Frontend
+  # ----------------------
+  frontend:
+    build:
+      context: ./frontend   # path to your React frontend folder
+      dockerfile: Dockerfile
+    container_name: react-frontend
+    restart: always
+    depends_on:
+      - backend
+    ports:
+      - "3000:80"
+    networks:
+      - app-network
+
+# ----------------------
+# Volumes
+# ----------------------
+volumes:
+  postgres_data:
+
+# ----------------------
+# Networks
+# ----------------------
+networks:
+  app-network:
+    driver: bridge
