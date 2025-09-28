@@ -19,10 +19,10 @@ build:
   script:
     - docker build -t flask-backend ./backend
     - docker build -t react-frontend ./frontend
- # artifacts:
-  #  paths:
-   #   - backend/
-    #  - frontend/
+  artifacts:
+    paths:
+      - backend/
+      - frontend/
 
 # -----------------------
 # Test Stage
@@ -33,18 +33,18 @@ test:
   services:
     - docker:25.0.0-dind
   script:
-    - docker compose -f docker-compose.yml up -d db
-    - docker compose -f docker-compose.yml up -d backend
+    - docker-compose -f docker-compose.yml up -d db
+    - docker-compose -f docker-compose.yml up -d backend
     - sleep 15
     # health check backend
     - apk add --no-cache curl
     - curl -f http://backend:5000/ || (echo "Backend failed!" && exit 1)
-    - docker compose -f docker-compose.yml up -d frontend
+    - docker-compose -f docker-compose.yml up -d frontend
     - sleep 15
     # health check frontend
     - curl -f http://frontend:80 || (echo "Frontend failed!" && exit 1)
   after_script:
-    - docker compose -f docker-compose.yml down
+    - docker-compose -f docker-compose.yml down
 
 # -----------------------
 # Deploy Stage
