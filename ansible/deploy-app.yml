@@ -1,0 +1,6 @@
+---
+- name: Deploy 3-Tier Application
+  hosts: all
+  become: true
+  roles:
+    - app

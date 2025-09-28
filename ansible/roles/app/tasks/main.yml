@@ -1,0 +1,27 @@
+---
+- name: Create app directory
+  file:
+    path: /opt/devops-project
+    state: directory
+
+- name: Copy docker-compose.yml
+  copy:
+    src: ../../docker-compose.yml
+    dest: /opt/devops-project/docker-compose.yml
+
+- name: Copy backend files
+  copy:
+    src: ../../backend/
+    dest: /opt/devops-project/backend/
+    mode: "0755"
+
+- name: Copy frontend files
+  copy:
+    src: ../../frontend/
+    dest: /opt/devops-project/frontend/
+    mode: "0755"
+
+- name: Start stack with Docker Compose
+  community.docker.docker_compose:
+    project_src: /opt/devops-project
+    state: present
