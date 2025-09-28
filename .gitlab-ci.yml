@@ -1,0 +1,62 @@
+stages:
+  - build
+  - test
+  - deploy
+
+variables:
+  DOCKER_DRIVER: overlay2
+  DOCKER_TLS_CERTDIR: ""   # Disable TLS inside DinD
+  COMPOSE_PROJECT_NAME: microservices_app
+
+# -----------------------
+# Build Stage
+# -----------------------
+build:
+  stage: build
+  image: docker:25.0.0
+  services:
+    - docker:25.0.0-dind
+  script:
+    - docker build -t flask-backend ./backend
+    - docker build -t react-frontend ./frontend
+ # artifacts:
+  #  paths:
+   #   - backend/
+    #  - frontend/
+
+# -----------------------
+# Test Stage
+# -----------------------
+test:
+  stage: test
+  image: docker/compose:1.29.2
+  services:
+    - docker:25.0.0-dind
+  script:
+    - docker compose -f docker-compose.yml up -d db
+    - docker compose -f docker-compose.yml up -d backend
+    - sleep 15
+    # health check backend
+    - apk add --no-cache curl
+    - curl -f http://backend:5000/ || (echo "Backend failed!" && exit 1)
+    - docker compose -f docker-compose.yml up -d frontend
+    - sleep 15
+    # health check frontend
+    - curl -f http://frontend:80 || (echo "Frontend failed!" && exit 1)
+  after_script:
+    - docker compose -f docker-compose.yml down
+
+# -----------------------
+# Deploy Stage
+# -----------------------
+deploy:
+  stage: deploy
+  image: python:3.11-slim
+  before_script:
+    - pip install ansible
+  script:
+    - ansible-playbook -i ansible/inventory.ini ansible/deploy-app.yml
+  only:
+    - main
+  when: 
+    manual
